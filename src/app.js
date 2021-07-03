@@ -54,16 +54,45 @@ App = {
   },
 
   render: async () => {
-    if (App.loading) {
-      return;
-    }
- 
+    if (App.loading) return;
+    
     App.setLoading(true);
-
 
     $('#account').html(App.account);
 
+    await App.renderTasks();
+
     App.setLoading(false);
+  },
+
+  renderTasks: async () => {
+    // load tasks from BC
+    const taskCount = await App.todoList.taskCount();
+    const $taskTemplate = $('.taskTemplate');
+    // Render each task with the task template
+    for (let i = 1; i <= taskCount; i++) {
+      const task = await App.todoList.tasks(i);
+ 
+      const taskId = task[0].toNumber();
+      const taskContent = task[1];
+      const taskCompleted = task[2];
+      
+      const $newTaskTemplate = $taskTemplate.clone();
+      $newTaskTemplate.find('.content').html(taskContent);
+      $newTaskTemplate.find('input')
+        .prop('name', taskId)
+        .prop('checked', taskCompleted)
+        // .on('click', App.toggleCompleted)
+
+      // Show task
+      if (taskCompleted) {
+        $('#completedTaskList').append($newTaskTemplate);
+      } else {
+        $('#taskList').append($newTaskTemplate);
+      }
+  
+      $newTaskTemplate.show();
+    }
   },
 
   setLoading: (boolean) => {
